@@ -1,0 +1,5 @@
+# Outside connections may only access the index file
+Order Allow,Deny
+<FilesMatch "^(?:index\.php|)$">
+	Allow from all
+</FilesMatch>
