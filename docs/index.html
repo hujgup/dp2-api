@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="description" content="Documentation for calling the DP2 API" />
+	<title>DP2 API Documentation</title>
+	<style>
+body {
+	background-color:#1a1c1d;
+	color:#e4e4e4;
+	font-family:"Lucida Sans Unicode","Lucida Sans","Arial",sans-serif;
+	font-size:14px;
+}
+ul {
+	padding-left:32px;
+}
+a {
+	color:#6a7fc4;
+	font-weight:bold;
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+a:active {
+	color:#b73443;
+}
+.indent {
+	margin:8px 0;
+	padding:4px 0 4px 8px;
+	border-left:4px solid #008282;
+}
+.main-title {
+	font-size:1.6em;
+}
+.sec-title {
+	margin-top:0;
+}
+.keyed-list {
+	list-style-type:none;
+	padding-left:20px;
+}
+.box {
+	display:inline-block;
+	background-color:#3b3d3c;
+	border:4px solid #008282;
+	padding:4px 8px;
+}
+.content {
+	max-width:60%;
+}
+.u {
+	text-decoration:underline;
+}
+.l1 {
+	list-style-type:lower-alpha;
+}
+.l2 {
+	list-style-type:lower-roman;
+}
+.l3 {
+	list-style-type:lower-greek;
+}
+.l4 {
+	list-style-type:upper-alpha;
+}
+.l5 {
+	list-style-type:upper-roman;
+}
+	</style>
+</head>
+<body>
+	<article class="content">
+		<p>[THIS IS INCOMPLETE - RETRIEVE REQUEST DOCUMENTATION NOT DONE]</p>
+		<header>
+			<h1 class="main-title">DP2 API Documentation</h1>
+			<p>The purpose of this document is to provide a reference for how to call the DP2 API, and what responses you can expect from it.</p>
+		</header>
+		<nav class="box">
+			<header>
+				<h2 class="sec-title">Navigation</h2>
+			</header>
+			<ol class="l0">
+				<li><a href="#b">The Basics</a></li>
+				<li><a href="#r">Request Syntax</a>
+					<ol class="l1">
+						<li><a href="#r-a">Authentication</a></li>
+						<li><a href="#r-r">Requests</a>
+							<ol class="l2">
+								<li><a href="#r-r-a">Add Requests</a>
+									<ol class="l3">
+										<li><a href="#r-r-a-r">Record Data</a>
+											<ol class="l4">
+												<li><a href="#r-r-a-r-dt">Understanding the Date/Time Format</a></li>
+											</ol>
+										</li>
+										<li><a href="#r-r-a-s">Responses</a>
+											<ol class="l4">
+												<li><a href="#r-r-a-s-n">Normal Responses</a></li>
+												<li><a href="#r-r-a-s-e">Error Responses</a></li>
+											</ol>
+										</li>
+									</ol>
+								</li>
+								<li><a href="#r-r-r">Retrieve Requests</a>
+									<ol class="l3">
+										<li><a href="#r-r-r-f">Filters</a>
+											<ol class="l4">
+												<li><a href="#r-r-r-f-c">Column Filters</a>
+													<ol class="l5">
+														<li><a href="#r-r-r-f-c-v">value</a></li>
+														<li><a href="#r-r-r-f-c-r">inRange</a></li>
+													</ol>
+												</li>
+												<li><a href="#r-r-r-f-l">Logic Filters</a>
+													<ol class="l5">
+														<li><a href="#r-r-r-f-l-u">Unary Logic Filters</a></li>
+														<li><a href="#r-r-r-f-l-n">Nary Logic Filters</a></li>
+													</ol>
+												</li>
+											</ol>
+										</li>
+									</ol>
+								</li>
+							</ol>
+						</li>
+					</ol>
+				</li>
+				<li><a href="#s">Response Syntax</a>
+					<ol class="l1">
+						<li><a href="#s-t">Response Types</a></li>
+						<li><a href="#s-e">Errors</a>
+							<ol class="l2">
+								<li><a href="#s-e-400">400 Bad Request</a></li>
+								<li><a href="#s-e-403">403 Forbidden</a></li>
+								<li><a href="#s-e-500">500 Internal Server Error</a></li>
+							</ol>
+						</li>
+					</ol>
+				</li>
+			</ol>
+		</nav>
+		<section id="b" class="indent">
+			<header>
+				<h2 class="sec-title">The Basics</h2>
+			</header>
+			<p>The DP2 API is based on JSON. Requests are send in JSON format, and barring error conditions, responses are recieved in JSON format.</p>
+			<p>A basic request will look something like this:</p>
+<pre>
+var json = {
+	"authent": {
+		// Authentication data must be sent with every request
+		"username": "some-username",
+		"password": "some-password"
+	},
+	"requests": [
+		// The API can execute multiple requests from one connection
+		{
+			"type": "add", // The type of this request - determines what the API will do
+			"records": [
+				// The set of sales records to add
+				{
+					"product": 5, // The ID of the product to make a sales record for (check dp2-api/debug/get_products.php for a full list)
+					"quantity": 1, // The number of product sold
+					"dateTime": "20170328T123456Z" // The date and time of the sale
+				}
+			]
+		}
+	]
+};
+var xhr = new XMLHttpRequest();
+xhr.open("POST", "path/to/api/", true); // All requests must be of type POST
+xhr.onreadystatechange = function() {
+	if (xhr.readyState === 4) {
+		console.log(JSON.parse(xhr.responseText)); // Barring error conditions, responses will be valid JSON
+	}
+};
+xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+xhr.send("request=" + encodeURIComponent(JSON.stringify(json))); // Request JSON should be set to the request key
+</pre>
+		</section>
+		<section id="r" class="indent">
+			<header>
+				<h2 class="sec-title">Request Syntax</h2>
+			</header>
+			<section id="r-a" class="indent">
+				<header>
+					<h3 class="sec-title">Authentication</h3>
+				</header>
+				<p>The authent data needs to be included with every request. This is to ensure an attacker cannot simply bypass a one-time login check by hand-writing their own HTTP requests.</p>
+				<p>Authent data consists of two parts: the username and the password.</p>
+				<p><strong>username</strong> is the unique ID for the current user. It can be up to 32 characters long.<br />
+				<strong>password</strong> is the key that unlocks access for the specified user. It can be up to 128 characters long.</p>
+				<p>Sample code:</p>
+<pre>
+var json = {
+	"authent": {
+		"username": "animerules123",
+		"password": "sailormoons"
+	},
+	// Requests...
+};
+</pre>
+			</section>
+			<section id="r-r" class="indent">
+				<header>
+					<h3 class="sec-title">Requests</h3>
+				</header>
+				<p>Each time you call the API, you must specify a request to execute. You <em>can</em> not specify any, but then nothing will happen, so what's the point?</p>
+				<p>To save processing power, you may specify multiple requests from the one connection. Requests will be executed in the same order defined by the user (first to last).</p>
+				<p>Sample code:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			// A request...
+		},
+		{
+			// Another request...
+		}
+	]
+};
+</pre>
+				<section id="r-r-a" class="indent">
+					<header>
+						<h3 class="sec-title">Add Requests</h3>
+					</header>
+					<p>An add request is a type of request specifying that the database should be updated with a new record.</p>
+					<p>To specify that a request is an add request, you must set the "type" field to "add".</p>
+					<p:Sample code:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "add",
+			// Request data...
+		}
+	]
+};
+</pre>
+					<p>You must specify values for the sales records to be added. This is done through creating an array of records to add, and specifying values in each.</p>
+					<p>Sample code:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "add",
+			"records": [
+				{
+					// Record data...
+				},
+				{
+					// Another record...
+				}
+			]
+		}
+	}
+};
+</pre>
+					<section id="r-r-a-r" class="indent">
+						<header>
+							<h3 class="sec-title">Record Data</h3>
+						</header>
+						<p>When adding a record, each of the following fields must be specified.</p>
+						<p><strong>product</strong> is the unique numeric ID of the product this sales record concerns. A list of all defined products can be found at <a href="../debug/get_products.php">dp2-api/debug/get_products.php</a>. Setting this field to any value not in the database will result in an error.<br />
+						<strong>quantity</strong> is the number of the specified product that was sold. It must be a positive integer. If it is zero, negative, or not an integer, an error state will occur.<br />
+						<strong>dateTime</strong> is the date and time the sale took place, in <a href="https://en.wikipedia.org/wiki/ISO_8601">compressed ISO 8601 format</a>. If the date/time is not in the correct format, an error state will occur.</p>
+						<p>Sample code:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "add",
+			"records": [
+				{
+					"product": 1,
+					"quantity": 4,
+					"dateTime": "20170331T161212Z"
+				}
+			]
+		}
+	]
+};
+</pre>
+						<section id="r-r-a-r-dt" class="indent">
+							<header>
+								<h3 class="sec-title">Understanding the Date/Time Format</h3>
+							</header>
+							<p>The date/time format is compressed, but hard to read.</p>
+							<p>A compressed date/time string will look like this: 20160708T084740Z. Let's break down what each component means.</p>
+							<p><strong class="u">2016</strong>0708T084740Z - The year.<br />
+							2016<strong class="u">07</strong>08T084740Z - The month of the year.<br />
+							201607<strong class="u">08</strong>T084740Z - The day of the month.<br />
+							20160708<strong class="u">T</strong>084740Z - Indicates that the date has stopped and the time has started. This is immutable.<br />
+							20160708T<strong class="u">08</strong>4740Z - The hour of the day.<br />
+							20160708T08<strong class="u">47</strong>40Z - The minute of the hour.<br />
+							20160708T0847<strong class="u">40</strong>Z - The second of the minute.<br />
+							20160708T084740<strong class="u">Z</strong> - Indicates that this is a UTC date/time (zulu time). This is immutable.</p>
+							<p>So, if you had a date along the lines of 2017-08-11 and a time of 3:48:07 pm, you would encode it like this:</p>
+							<p>If your date/time is not in UTC time, it should be adjusted so it is.<br />
+							Remove all the dashes from the date component, so it now looks like 20170811.<br />
+							Stick a T on the end to indicate a context switch from date to time, so it now looks like 20170811T.<br />
+							Times are all in 24-hour time, so if your time is pm, add 12 to the hour, so your time is now 15:48:07.<br />
+							Remove all the colons from the time component, so it now looks like 154807.<br />
+							Stick the date and time components together, so combined they now look like 20170811T154807.<br />
+							Stick a Z on the end to indicate the timezone is UTC, so it now looks like 20170811T154807Z.</p>
+						</section>
+						<!-- TODO: Error states -->
+					</section>
+					<section id="r-r-a-s" class="indent">
+						<header>
+							<h3 class="sec-title">Responses</h3>
+						</header>
+						<section id="r-r-a-s-n" class="indent">
+							<header>
+								<h3 class="sec-title">Normal Responses</h3>
+							</header>
+							<p>If an add request was successfully executed, <strong class="u">null</strong> will be returned.</p>
+						</section>
+						<section id="r-r-a-s-e" class="indent">
+							<header>
+								<h3 class="sec-title">Error Responses</h3>
+							</header>
+							<p>If an add request was unsuccessful, one of the following error codes may be returned:</p>
+							<ul>
+								<li><a href="#s-e-400">ERR 5</a> indicates that the request data was not valid JSON.</li>
+								<li><a href="#s-e-400">ERR 7</a> indicates that the request data was valid JSON, but was either not formatted correctly, or fields contained invalid values.</li>
+								<li><strong class="u">ERR 7/9</strong> indicates that the product ID field of a record was not an integer.</li>
+								<li><strong class="u">ERR 7/10</strong> indicates that the quantify field of a record was not an integer.</li>
+								<li><strong class="u">ERR 7/11</strong> indicates that the value of the quantity field was not a positive number.</li>
+								<li><strong class="u">ERR 7/12</strong> indicates that the dateTime field of a record was not a string.</li>
+								<li><strong class="u">ERR 7/13</strong> indicates that the dateTime field of a record was not in the correct format.</li>
+								<li><strong class="u">ERR 7/14</strong> indicates that one or more of the required record fields (product, quantity, dateTime) were not defined.</li>
+								<li><strong class="u">ERR 7/15</strong> indicates that a record was not a JSON object.</li>
+								<li><strong class="u">ERR 7/16</strong> indicates that the records field of a request object was not an array.</li>
+								<li><strong class="u">ERR 7/17</strong> indicates that the required add request field "records" was not defined.</li>
+<!--
+								<li><strong class="u">ERR 7/n</strong> indicates that x.</li>
+-->
+							</ul>
+						</section>
+					</section>
+				</section>
+				<section id="r-r-r" class="indent">
+					<header>
+						<h3 class="sec-title">Retrieve Requests</h3>
+					</header>
+					<p>A retrieve request is a type of request specifying that the database should provide the caller with a record, or a set of records, optionally matching some filter.</p>
+					<p>To specify that a request is a retrieve request, you must set the "type" field to "retrieve".</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "retrieve"
+		}
+	]
+};
+</pre>
+					<section id="r-r-r-f" class="indent">
+						<header>
+							<h3 class="sec-title">Filters</h3>
+						</header>
+						<p>By default, a retrieve request will return every sales record in the database. To change this behavior, a filter must be provided.</p>
+						<p>Filters can be added to retrieve requests like so:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "retrieve",
+			"filter": {
+				// Filter details...
+			}
+		}
+	]
+};
+</pre>
+						<p>A sales record will only be returned if the filter returns true for that record.</p>
+						<p>Certain filters can be chained together to create a tree of filters.</p>
+						<p>There are two types of filters.</p>
+						<section id="r-r-r-f-c" class="indent">
+							<header>
+								<h3 class="sec-title">Column Filters</h3>
+							</header>
+							<p>Column filters specify that a column needs to have either a certain value, of have that value be in a certain range. They are the most basic type of filter, and the only type of filter that can act as leaf nodes on the filter tree. To indicate that a filter is a column filter, you must set its "type" field to "column".</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "retrieve",
+			"filter": {
+				"type": "column",
+				// Filter details...
+			}
+		}
+	]
+};
+</pre>
+							<p>Each column filter corresponds to a specific column of the sales record table. This is indicated through the "name" field.</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "product",
+	// etc...
+}
+</pre>
+							<p>Valid column names are as follows:</p>
+							<ul>
+								<li><strong class="u">id</strong> is the unique ID of the sales record. It is a positive integer.</li>
+								<li><strong class="u">product</strong> is the unique ID of the product that was sold. It is a positive integer. Its possible values are enumerated on <a href="../debug/get_products.php">this page</a>.</li>
+								<li><strong class="u">quantity</strong> is the amount of product that was sold. It is a positive integer.</li>
+								<li><strong class="u">dateTime</strong> is the date and time the sale took place. It is a <a href="#r-a-r-dt">compresses ISO 8601 Date/Time string</a>.</li>
+								<li><strong class="u">name</strong> is the name of the product corresponding to the unique product ID. It is a string.</li>
+								<li><strong class="u">value</strong> is the price, in cents, of the product corresponding to the unique product ID. It is a positive integer.</li>
+							</ul>
+							<p>Specific values for these columns can be filtered for using one of two methods.</p>
+							<section id="r-r-r-f-c-v" class="indent">
+								<header>
+									<h3 class="sec-title">value</h3>
+								</header>
+								<p>By using the "value" field, the filter will only return true for sales records that have the specified value.</p>
+								<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "product",
+	"value": 2
+}
+</pre>
+							</section>
+							<section id="r-r-r-f-c-r" class="indent">
+								<header>
+									<h3 class="sec-title">inRange</h3>
+								</header>
+								<p>By using the "inRange" field, the filter will only return true for sales records that are inside the specified range.</p>
+								<p>The inRange field is an object with four fields.<br />
+								<strong class="u">low</strong> is the lower bound of the range that will return true.<br />
+								<strong class="u">lowInclusive</strong> is a boolean that determines whether values that are equal to low should return true.<br />
+								<strong class="u">high</strong> is the upper bound of the range that will return true.<br />
+								<strong class="u">highInclusive</strong> is a boolean that determines whether values that are equal to high should return true.</p>
+								<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "dateTime",
+	"inRange": {
+		"low": "20100101T000000Z",
+		"lowInclusive": true,
+		"high": "2016000101T000000Z",
+		"highInclusive": false
+		// Any date in 2010-2015 inclusive will pass this test
+	}
+}
+</pre>
+							</section>
+						</section>
+						<section id="r-r-r-f-l" class="indent">
+							<header>
+								<h3 class="sec-title">Logic Filters</h3>
+							</header>
+							<p>Logic filters take in the values returned by their child filters and determine whether to return true based on how many of their children returned true.</p>
+							<section id="r-r-r-f-l-u" class="indent">
+								<header>
+									<h3 class="sec-title">Unary Logic Filters</h3>
+								</header>
+								<p>Unary logic filters have one and only one child filter.</p>
+								<p>There is only one unary filter: "logicNot". It will take whatever value is returned by its child and invert it - i.e. you can use this in combination with an inRange column filter to filter for fields that are outside a range.</p>
+								<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "logicNot",
+	"child": {
+		// Some other filter
+	}
+}
+</pre>
+							</section>
+							<section id="r-r-r-f-l-n" class="indent">
+								<header>
+									<h3 class="sec-title">Nary Logic Filters</h3>
+								</header>
+								<p>Nary logic filters have an arbitrary number of child filters.</p>
+<!--
+								<section id="r-r-r-f-l-n-x" class="indent">
+									<header>
+										<h3 class="sec-title">x</h3>
+									</header>
+									<p></p>
+									<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "x",
+	"children": [
+		{
+			// Some other filter
+		},
+		{
+			// Yet another filter...
+		}
+	]
+}
+</pre>
+								</section>
+-->
+							</section>
+						</section>
+					</section>
+				</section>
+				<!-- TODO: retrieve requests -->
+			</section>
+		</section>
+		<section id="s" class="indent">
+			<header>
+				<h2 class="sec-title">Response Syntax</h2>
+			</header>
+			<p>Barring certain error states, responses are returned as JSON data.</p>
+			<p>The root return object will be an array, with each entry corresponding to an individual request. These responses occur in the same order their requests were defined in (first to last).</p>
+			<p>Sample code:</p>
+<pre>
+[
+	{
+		// Some response data...
+	},
+	{
+		// Some more respone data...
+	}
+]
+</pre>
+			<section id="s-t" class="indent">
+				<header>
+					<h3 class="sec-title">Response Types</h3>
+				</header>
+				<p>Each individual response can be one of three types.</p>
+				<p>If the response is <strong class="u">null</strong>, the request was successful and returned no data.<br />
+				If the response is <strong class="u">an object</strong>, the request was successful and returned data. Consult the documentaion for the relevant request type for the contents of this object.<br />
+				If the response is <strong class="u">a string</strong>, then an error occured. The string contains details about the error. Consult the documentation for the relevant request type for reasons why certain errors may be encountered.</p>
+			</section>
+			<section id="s-e" class="indent">
+				<header>
+					<h3 class="sec-title">Errors</h3>
+				</header>
+				<p>Errors can occur before or during request execution. If the occur before, no JSON will be returned - just a string describing the error. If the occur during, the request's response data will be replaced with a string detailing the error, and subsequent requests will not be executed.</p>
+				<p>Below is a list of all the possible error states, and what they mean.</p>
+				<section id="s-e-400" class="indent">
+					<header>
+						<h3 class="sec-title">400 Bad Request</h3>
+					</header>
+					<p>These errors indicate that something was wrong with the request that was sent.</p>
+					<ul>
+						<li><strong class="u">ERR 1</strong> indicates that the HTTP request did not use the correct request method (the API expects POST).</li>
+						<li><strong class="u">ERR 2</strong> indicates that a POST request was recieved, but none of its fields were set. This is most often due to the Content-Type header of your HTTP request not being set to "application/x-www-form-urlencoded".</li>
+						<li><strong class="u">ERR 3</strong> indicates that a POST request had keys, but not the ones the API expected. This is most often due to a spelling mistake.</li>
+						<li><strong class="u">ERR 4</strong> indicates that the data in a POST request was found, but was not valid JSON.</li>
+						<li><strong class="u">ERR 7</strong> indicates that request data was valid JSON, but was not in the form that the API expected. Some sub-codes are global and are documented here, but if yours is not, you should refer to the documentation for specific request types for further details.</li>
+						<li><strong class="u">ERR 7/1</strong> indicates that the request type was not valid.</li>
+						<li><strong class="u">ERR 7/2</strong> indicates that the request type was not a string.</li>
+						<li><strong class="u">ERR 7/3</strong> indicates that the request type was not defined.</li>
+						<li><strong class="u">ERR 7/4</strong> indicates that a request was not a JSON object.</li>
+						<li><strong class="u">ERR 7/5</strong> indicates that a request creator returned null (this should never happen).</li>
+						<li><strong class="u">ERR 7/6</strong> indicates that the "requests" field of the root JSON object was not an array.</li>
+						<li><strong class="u">ERR 7/7</strong> indicates that the "requests" field of the root JSON object was not defined.</li>
+						<li><strong class="u">ERR 7/8</strong> indicates that the root JSON object is not an object.</li>
+<!--
+						<li><strong class="u">ERR n</strong> x.</li>
+-->
+					</ul>
+				</section>
+				<section id="s-e-403" class="indent">
+					<header>
+						<h3 class="sec-title">403 Forbidden</h3>
+					</header>
+					<p>These errors indicate that the request was recieved and understood, but authentication failed.</p>
+					<ul>
+						<li><strong class="u">ERR 6</strong> indicates that authentication failed. Login details were either not provided, or were incorrect.</li>
+					<ul>
+				</section>
+				<section id="s-e-500" class="indent">
+					<header>
+						<h3 class="sec-title">500 Internal Server Error</h3>
+					</header>
+					<p>These errors indicate that a request was valid, but something went wrong internally. These indicate that something in the PHP code needs to be changed.</p>
+					<ul>
+						<li><strong class="u">ERR 5</strong> indicates something went wrong when connecting to the database server.</li>
+						<li><strong class="u">ERR 8</strong> indicates that an unhandled exception occured while parsing the API request.</li>
+						<li><strong class="u">ERR 9</strong> indicates that a PHP error occured.</li>
+						<li><strong class="u">ERR 10</strong> indicates that an exception occured at an unexpected time.</li>
+						<li><strong class="u">ERR 11</strong> indicates that something was wrong with the MySQL query the API created to execute a request.</li>
+						<li><strong class="u">ERR 12</strong> indicates that an unhandled exception occured while executing a request.</li>
+					<ul>
+				</section>
+			</section>
+		</section>
+	</article>
+</body>
+</html>
+
+
+
+

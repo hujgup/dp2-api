@@ -2,8 +2,10 @@
 	require_once("db_core.php");
 
 	class ApiRequestCreationException extends Exception {
-		public function __construct($msg) {
+		public $subcode = null;
+		public function __construct($msg,$subcode) {
 			parent::__construct($msg,0,null);
+			$this->subcode = $subcode;
 		}
 		public function __toString() {
 			return __CLASS__.": [".$this->code."]: ".$this->message."\n";
@@ -33,16 +35,16 @@
 							}
 						}
 						if ($res === null) {
-							self::createError("Undefined request type \"".$type."\".",$stack);
+							self::createError("Undefined request type \"".$type."\".",$stack,1);
 						}
 					} else {
-						self::createTypeError("type","string",$type,$stack);
+						self::createTypeError("type","string",$type,$stack,2);
 					}
 				} else {
-					self::createUndefError("type",$stack);
+					self::createUndefError("type",$stack,3);
 				}
 			} else {
-				self::createNotObjectError(array_peek($stack),$stack);
+				self::createNotObjectError(array_peek($stack),$stack,4);
 			}
 			return $res;
 		}
@@ -63,30 +65,30 @@
 		public static function isJsonObject(&$obj) {
 			return count($obj) > 0 ? !isset($obj[0]) : true;
 		}
-		public static function createError($msg,&$stack) {
+		public static function createError($msg,&$stack,$code) {
 			$res = "Request creation error: ".$msg;
 			if (count($stack) > 0) {
 				$res .= "\nStack trace: [".implode(" -> ",$stack)."]";
 			}
-			throw new ApiRequestCreationException($res);
+			throw new ApiRequestCreationException($res,$code);
 		}
-		public static function createTypeError($key,$expectedType,&$value,&$stack) {
-			self::createError("Key \"".$key."\" incorrect type: expected ".$expectedType.", was ".gettype($value).".",$stack);
+		public static function createTypeError($key,$expectedType,&$value,&$stack,$code) {
+			self::createError("Key \"".$key."\" incorrect type: expected ".$expectedType.", was ".gettype($value).".",$stack,$code);
 		}
-		public static function createUndefError($key,&$stack) {
-			self::createError("Required key \"".$key."\" is undefined.",$stack);
+		public static function createUndefError($key,&$stack,$code) {
+			self::createError("Required key \"".$key."\" is undefined.",$stack,$code);
 		}
-		public static function createUndefSetError(&$keySet,&$stack) {
-			self::createError("Required keys [".implode(", ",$keySet)."] are undefined.",$stack);
+		public static function createUndefSetError(&$keySet,&$stack,$code) {
+			self::createError("Required keys [".implode(", ",$keySet)."] are undefined.",$stack,$code);
 		}
-		public static function createNotArrayError($key,&$stack) {
-			self::createError("Key \"".$key."\" value must be an array.",$stack);
+		public static function createNotArrayError($key,&$stack,$code) {
+			self::createError("Key \"".$key."\" value must be an array.",$stack,$code);
 		}
-		public static function createNotObjectError($key,&$stack) {
-			self::createError("Key \"".$key."\" value must be an object.",$stack);
+		public static function createNotObjectError($key,&$stack,$code) {
+			self::createError("Key \"".$key."\" value must be an object.",$stack,$code);
 		}
-		public static function createRangeError($key,$desc,&$value,&$stack) {
-			self::createError("Key \"".$key."\" out of range: expected ".$desc.", was ".$value.".",$stack);
+		public static function createRangeError($key,$desc,&$value,&$stack,$code) {
+			self::createError("Key \"".$key."\" out of range: expected ".$desc.", was ".$value.".",$stack,$code);
 		}
 		public static function authent(&$json,Database &$db) {
 			$res = false;
@@ -127,20 +129,20 @@
 							$stack[] = $i;
 							$res2 = self::createRequest($request,$stack);
 							if ($res2 === null) {
-								self::createError("Request creator returned null.",$stack);
+								self::createError("Request creator returned null.",$stack,5);
 							} else {
 								$res[] = $res2;
 							}
 							array_pop($stack);
 						}
 					} else {
-						self::createNotArrayError("requests",$stack);
+						self::createNotArrayError("requests",$stack,6);
 					}
 				} else {
-					self::createUndefError("requests",$stack);
+					self::createUndefError("requests",$stack,7);
 				}
 			} else {
-				self::createNotObjectError("ROOT",$stack);
+				self::createNotObjectError("ROOT",$stack,8);
 			}
 			return $res;
 		}

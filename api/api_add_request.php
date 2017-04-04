@@ -17,25 +17,25 @@
 					$this->quantity = $json["quantity"];
 					$dateTime = $json["dateTime"];
 					if (!is_int($this->product)) {
-						ApiRequest::createTypeError("product","integer",$this->product,$stack);
+						ApiRequest::createTypeError("product","integer",$this->product,$stack,9);
 					} elseif (!is_int($this->quantity)) {
-						ApiRequest::createTypeError("quantity","integer",$this->quantity,$stack);
+						ApiRequest::createTypeError("quantity","integer",$this->quantity,$stack,10);
 					} elseif ($this->quantity <= 0) {
-						ApiRequest::createRangeError("quantity","1 or higher",$this->quantity,$stack);
+						ApiRequest::createRangeError("quantity","1 or higher",$this->quantity,$stack,11);
 					} elseif (!is_string($dateTime)) {
-						ApiRequect::createTypeError("dateTime","string",$dateTime,$stack);
+						ApiRequect::createTypeError("dateTime","string",$dateTime,$stack,12);
 					} else {
 						try {
 							$this->dateTime = new UtcDateTime($dateTime);
 						} catch (Exception $e) {
-							ApiRequest::createError("Date/Time: ".$e->getMessage(),$stack);
+							ApiRequest::createError("Date/Time: ".$e->getMessage(),$stack,13);
 						}
 					}
 				} else {
-					ApiRequest::createUndefSetError($notFound,$stack);
+					ApiRequest::createUndefSetError($notFound,$stack,14);
 				}
 			} else {
-				ApiRequest::createNotObjectError(array_peek($stack),$stack);
+				ApiRequest::createNotObjectError(array_peek($stack),$stack,15);
 			}
 		}
 	}
@@ -54,10 +54,10 @@
 					}
 					array_pop($stack);
 				} else {
-					ApiRequest::createNotArrayError("records",$stack);
+					ApiRequest::createNotArrayError("records",$stack,16);
 				}
 			} else {
-				ApiRequest::createUndefError("records",$stack);
+				ApiRequest::createUndefError("records",$stack,17);
 			}
 		}
 		private function addRecord(ApiAddRequestRecord &$record,Database &$db) {
