@@ -53,7 +53,7 @@
 				if (!ApiRequest::authent($json,$db)) {
 					set_header("HTTP/1.0 403 Forbidden");
 					echo "ERR 6: Authentication failed.";
-				} else {
+				} elseif (count($json) > 1) {
 					$req = null;
 					try {
 						$req = ApiRequest::create($json);
