@@ -20,6 +20,47 @@
 		return $arr[$count - 1];
 	}
 
+	abstract class ApiRecord {
+		const PRODUCT_KEY = "product";
+		const QUANTITY_KEY = "quantity";
+		const DATE_TIME_KEY = "dateTime";
+		public $product = null;
+		public $quantity = null;
+		public $dateTime = null;
+		protected function getNotFound(&$json) {
+			$notFound = [];
+			ApiRequest::verifyExists(self::PRODUCT_KEY,$json,$notFound);
+			ApiRequest::verifyExists(self::QUANTITY_KEY,$json,$notFound);
+			ApiRequest::verifyExists(self::DATE_TIME_KEY,$json,$notFound);
+			return $notFound;
+		}
+		protected function setProduct(&$json,&$stack,$typeErrCode) {
+			$this->product = $json[self::PRODUCT_KEY];
+			if (!is_int($this->product)) {
+				ApiRequest::createTypeError(self::PRODUCT_KEY,"integer",$this->product,$stack,$rangeErrCode);
+			}
+		}
+		protected function setQuantity(&$json,&$stack,$typeErrCode,$rangeErrCode) {
+			$this->quantity = $json[self::QUANTITY_KEY];
+			if (!is_int($this->quantity)) {
+				ApiRequest::createTypeError(self::QUANTITY_KEY,"integer",$this->quantity,$stack,$typeErrCode);
+			} elseif ($this->quantity <= 0) {
+				ApiRequest::createRangeError(self::QUANTITY_KEY,"1 or higher",$this->quantity,$stack,$rangeErrCode);
+			}
+		}
+		protected function setDateTime(&$json,&$stack,$typeErrCode,$invalidErrCode) {
+			$dateTime = $json[self::DATE_TIME_KEY];
+			if (!is_string($dateTime)) {
+				ApiRequest::createTypeError(self::DATE_TIME_KEY,"string",$dateTime,$stack,$typeErrCode);
+			}
+			try {
+				$this->dateTime = new UtcDateTime($dateTime);
+			} catch (Exception $e) {
+				ApiRequest::createError("Date/Time: ".$e->getMessage(),$stack,$invalidErrCode);
+			}
+		}
+	}
+
 	abstract class ApiRequest {
 		private static $_reqTypeMap = [];
 		private static function createRequest(&$json,&$stack) {

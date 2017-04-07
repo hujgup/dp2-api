@@ -1,4 +1,6 @@
 <?php
+	require_once("db_build_select.php");
+
 	class CtorInvoker {
 		private static $_map = [];
 		public static function invoke($className,$args = null) {
@@ -95,6 +97,9 @@
 
 	abstract class SqlQueryBuilder {
 		const IDENT_REGEX = "/[^a-zA-Z0-9\\\$_]/";
+		protected function formatValue($value) {
+			return is_numeric($value) ? $value : $this->getDb()->escapeString($value);
+		}
 		protected function isValidIdentifier(&$ident) {
 			if (preg_match(self::IDENT_REGEX,$ident)) {
 				throw new InvalidArgumentException("Identifier \"".$ident."\" contains forbidden characters (permitted: A-Z, a-z, 0-9, $, _).");
@@ -325,6 +330,21 @@
 		public function query(SqlQueryBuilder &$builder) {
 			$query = $builder->build();
 			return $this->queryRaw($query);
+		}
+		public function getAllRows($join) {
+			$select = new SelectQueryBuilder($this);
+			$cols = [[self::SALES,self::SALES_ID,self::SALES_ID],self::SALES_PRODUCT,self::SALES_QUANTITY,self::SALES_DATETIME];
+			if ($join) {
+				$cols[] = self::PRODUCTS_NAME;
+				$cols[] = self::PRODUCTS_VALUE;
+			}
+			$select->setColumns($cols)
+				->setPrimaryTable(self::SALES);
+			if ($join) {
+				$select->setJoinTables([self::PRODUCTS])
+					->setJoinColumns([[[self::SALES,self::SALES_PRODUCT],[self::PRODUCTS,self::PRODUCTS_ID]]]);
+			}
+			return $select->query();
 		}
 	}
 ?>

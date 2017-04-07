@@ -1,2 +1,0 @@
-Update docs to reflect pure-authent stuff
-API -> Edit record

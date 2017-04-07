@@ -2,35 +2,14 @@
 	require_once("api_request.php");
 	require_once("db_build_insert.php");
 
-	class ApiAddRequestRecord {
-		public $product = null;
-		public $quantity = null;
-		public $dateTime = null;
+	class ApiAddRequestRecord extends ApiRecord {
 		public function __construct(&$json,&$stack) {
 			if (ApiRequest::isJsonObject($json)) {
-				$notFound = [];
-				ApiRequest::verifyExists("product",$json,$notFound);
-				ApiRequest::verifyExists("quantity",$json,$notFound);
-				ApiRequest::verifyExists("dateTime",$json,$notFound);
+				$notFound = $this->getNotFound($json);
 				if (count($notFound) === 0) {
-					$this->product = $json["product"];
-					$this->quantity = $json["quantity"];
-					$dateTime = $json["dateTime"];
-					if (!is_int($this->product)) {
-						ApiRequest::createTypeError("product","integer",$this->product,$stack,9);
-					} elseif (!is_int($this->quantity)) {
-						ApiRequest::createTypeError("quantity","integer",$this->quantity,$stack,10);
-					} elseif ($this->quantity <= 0) {
-						ApiRequest::createRangeError("quantity","1 or higher",$this->quantity,$stack,11);
-					} elseif (!is_string($dateTime)) {
-						ApiRequect::createTypeError("dateTime","string",$dateTime,$stack,12);
-					} else {
-						try {
-							$this->dateTime = new UtcDateTime($dateTime);
-						} catch (Exception $e) {
-							ApiRequest::createError("Date/Time: ".$e->getMessage(),$stack,13);
-						}
-					}
+					$this->setProduct($json,$stack,9);
+					$this->setQuantity($json,$stack,10,11);
+					$this->setDateTime($json,$stack,12,13);
 				} else {
 					ApiRequest::createUndefSetError($notFound,$stack,14);
 				}
@@ -47,7 +26,7 @@
 				$records = $json["records"];
 				if (ApiRequest::isJsonArray($records)) {
 					$stack[] = "records";
-					foreach ($records as $i => $record) {
+					foreach ($records as $i => &$record) {
 						$stack[] = $i;
 						$this->_records[] = new ApiAddRequestRecord($record,$stack);
 						array_pop($stack);

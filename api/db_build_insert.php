@@ -5,6 +5,7 @@
 		private $_db = null;
 		private $_table = null;
 		private $_columns = null;
+		private $_colNumber = null;
 		private $_values = [];
 		public function __construct(Database &$db) {
 			$this->_db = $db;
@@ -18,11 +19,7 @@
 				} else {
 					$res .= ",";
 				}
-				if (is_numeric($value)) {
-					$res .= $value;
-				} else {
-					$res .= $this->_db->escapeString($value);
-				}
+				$res .= $this->formatValue($value);
 			}
 			$res .= ")";
 			return $res;
@@ -35,6 +32,7 @@
 		public function setColumns($columns) {
 			$this->validateColumnSet($columns);
 			$this->_columns = "(".implode(",",$columns).")";
+			$this->_colNumber = count($columns);
 			return $this;
 		}
 		public function pushValues($values) {
@@ -54,6 +52,8 @@
 			$count = count($this->_values);
 			if ($count <= 0) {
 				throw new UnexpectedValueException("Cannot insert zero values.");
+			} elseif ($count !== $this->_colNumber) {
+				throw new UnexpectedValueException("Number of values to be insert must be the same as the number of columns defined (expected ".$this->_colNumber." but was ".$count.").");
 			}
 			$res = "INSERT INTO ".$this->_table." ".$this->_columns." VALUES ".$this->_values[0];
 			for ($i = 1; $i < $count; $i++) {

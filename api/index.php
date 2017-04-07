@@ -2,6 +2,7 @@
 	require_once("db_core.php");
 	require_once("api_request.php");
 	require_once("api_add_request.php");
+	require_once("api_edit_request.php");
 	require_once("api_retrieve_request.php");
 
 	$canSet = true;

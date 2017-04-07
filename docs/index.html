@@ -46,9 +46,6 @@ a:active {
 	border:4px solid #008282;
 	padding:4px 8px;
 }
-.content {
-	max-width:60%;
-}
 .u {
 	text-decoration:underline;
 }
@@ -67,11 +64,65 @@ a:active {
 .l5 {
 	list-style-type:upper-roman;
 }
+.collapser {
+	background-color:#008141;
+	color:#e4e4e4;
+	font-family:"Lucida Sans Unicode","Lucida Sans","Arial",sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	vertical-align:middle;
+	border-radius:200px;
+	padding:0 4px;
+	cursor:pointer;
+}
+.collapser:active {
+	background-color:#e00707;
+}
 	</style>
+	<script>
+function setupBtn(element) {
+	var retract = "&#9650;";
+	var expand = "&#9660;";
+	element.innerHTML = retract;
+	var isExpanded = true;
+	var collapses = element.nextElementSibling;
+	element.addEventListener("click",function() {
+		if (isExpanded) {
+			collapses.style.display = "none";
+			element.innerHTML = expand;
+			isExpanded = false;
+		} else {
+			collapses.style.display = "";
+			element.innerHTML = retract;
+			isExpanded = true;
+		}
+	});
+}
+function createCollapser(element) {
+	if (element.getElementsByTagName("ol").length > 0) {
+		var button = document.createElement("button");
+			button.type = "button";
+			button.className = "collapser";
+		var refNode = element.children[1];
+		element.insertBefore(document.createTextNode(" "),refNode);
+		element.insertBefore(button,refNode);
+		setupBtn(button);
+		createCollapsers(refNode);
+	}
+}
+function createCollapsers(element) {
+	for (var i = 0; i < element.children.length; i++) {
+		createCollapser(element.children[i]);
+	}
+}
+
+window.addEventListener("DOMContentLoaded",function() {
+	createCollapsers(document.getElementById("root-list"));
+});
+	</script>
 </head>
 <body>
 	<article class="content">
-		<p>[THIS IS INCOMPLETE - RETRIEVE REQUEST DOCUMENTATION NOT DONE]</p>
 		<header>
 			<h1 class="main-title">DP2 API Documentation</h1>
 			<p>The purpose of this document is to provide a reference for how to call the DP2 API, and what responses you can expect from it.</p>
@@ -80,8 +131,15 @@ a:active {
 			<header>
 				<h2 class="sec-title">Navigation</h2>
 			</header>
-			<ol class="l0">
+			<ol id="root-list" class="l0">
 				<li><a href="#b">The Basics</a></li>
+				<li><a href="#sf">Sales Record Fields</a>
+					<ol class="l1">
+						<li><a href="#sf-s">Specifiable Fields</a></li>
+						<li><a href="#sf-d">Derived Fields</a></li>
+						<li><a href="#sf-dt">Understanding the Date/Time Format</a></li>
+					</ol>
+				</li>
 				<li><a href="#r">Request Syntax</a>
 					<ol class="l1">
 						<li><a href="#r-a">Authentication</a></li>
@@ -89,11 +147,7 @@ a:active {
 							<ol class="l2">
 								<li><a href="#r-r-a">Add Requests</a>
 									<ol class="l3">
-										<li><a href="#r-r-a-r">Record Data</a>
-											<ol class="l4">
-												<li><a href="#r-r-a-r-dt">Understanding the Date/Time Format</a></li>
-											</ol>
-										</li>
+										<li><a href="#r-r-a-r">Record Data</a></li>
 										<li><a href="#r-r-a-s">Responses</a>
 											<ol class="l4">
 												<li><a href="#r-r-a-s-n">Normal Responses</a></li>
@@ -104,20 +158,23 @@ a:active {
 								</li>
 								<li><a href="#r-r-r">Retrieve Requests</a>
 									<ol class="l3">
-										<li><a href="#r-r-r-f">Filters</a>
+										<li><a href="#r-r-r-f">Retrieve Filters</a></li>
+										<li><a href="#r-r-r-s">Responses</a>
 											<ol class="l4">
-												<li><a href="#r-r-r-f-c">Column Filters</a>
-													<ol class="l5">
-														<li><a href="#r-r-r-f-c-v">value</a></li>
-														<li><a href="#r-r-r-f-c-r">inRange</a></li>
-													</ol>
-												</li>
-												<li><a href="#r-r-r-f-l">Logic Filters</a>
-													<ol class="l5">
-														<li><a href="#r-r-r-f-l-u">Unary Logic Filters</a></li>
-														<li><a href="#r-r-r-f-l-n">Nary Logic Filters</a></li>
-													</ol>
-												</li>
+												<li><a href="#r-r-r-s-n">Normal Responses</a></li>
+												<li><a href="#r-r-r-s-e">Error Responses</a></li>
+											</ol>
+										</li>
+									</ol>
+								</li>
+								<li><a href="#r-r-e">Edit Requests</a>
+									<ol class="l3">
+										<li><a href="#r-r-e-u">Specifying Values to Edit</a></li>
+										<li><a href="#r-r-e-f">Edit Filters</a></li>
+										<li><a href="#r-r-e-s">Responses</a>
+											<ol class="l4">
+												<li><a href="#r-r-e-s-n">Normal Responses</a></li>
+												<li><a href="#r-r-e-s-e">Error Responses</a></li>
 											</ol>
 										</li>
 									</ol>
@@ -138,13 +195,47 @@ a:active {
 						</li>
 					</ol>
 				</li>
+				<li><a href="#f">Filters</a>
+					<ol class="l1">
+						<li><a href="#f-c">Column Filters</a>
+							<ol class="l2">
+								<li><a href="#f-c-v">value</a></li>
+								<li><a href="#f-c-r">inRange</a></li>
+							</ol>
+						</li>
+						<li><a href="#f-l">Logic Filters</a>
+							<ol class="l2">
+								<li><a href="#f-l-u">Unary Logic Filters</a></li>
+								<li><a href="#f-l-n">Nary Logic Filters</a>
+									<ol class="l3">
+										<li><a href="#f-l-n-a">logicAnd</a></li>
+										<li><a href="#f-l-n-o">logicOr</a></li>
+										<li><a href="#f-l-n-na">logicNand</a></li>
+										<li><a href="#f-l-n-no">logicNor</a></li>
+										<li><a href="#f-l-n-x">logicXor</a></li>
+										<li><a href="#f-l-n-xn">logicXnor</a></li>
+										<li><a href="#f-l-n-p">Pivot Filters</a>
+											<ol class="l4">
+												<li><a href="#f-l-n-p-lt">logicLt</a></li>
+												<li><a href="#f-l-n-p-gt">logicGt</a></li>
+												<li><a href="#f-l-n-p-le">logicLe</a></li>
+												<li><a href="#f-l-n-p-ge">logicGe</a></li>
+											</ol>
+										</li>
+									</ol>
+								</li>
+							</ol>
+						</li>
+						<li><a href="#f-e">Creation Errors</a></li>
+					</ol>
+				</li>
 			</ol>
 		</nav>
 		<section id="b" class="indent">
 			<header>
 				<h2 class="sec-title">The Basics</h2>
 			</header>
-			<p>The DP2 API is based on JSON. Requests are send in JSON format, and barring error conditions, responses are recieved in JSON format.</p>
+			<p>The DP2 API is based on JSON. Requests are send in JSON format, and <a href="#s-e">barring error conditions</a>, responses are recieved in JSON format.</p>
 			<p>A basic request will look something like this:</p>
 <pre>
 var json = {
@@ -179,6 +270,55 @@ xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 xhr.send("request=" + encodeURIComponent(JSON.stringify(json))); // Request JSON should be set to the request key
 </pre>
 		</section>
+		<section id="sf" class="indent">
+			<header>
+				<h2 class="sec-title">Sales Record Fields</h2>
+			</header>
+			<p>This section details the various fields of a sales record.</p>
+			<section id="sf-s" class="indent">
+				<header>
+					<h3 class="sec-title">Specifiable Fields</h3>
+				</header>
+				<p>These fields can be specified in add or edit requests, and their values determine the values in the derived fields.</p>
+				<p><strong>product</strong> is the unique numeric ID of the product this sales record concerns. A list of all defined products can be found at <a href="../debug/get_products.php">dp2-api/debug/get_products.php</a>. Setting this field to any value not in the database will result in an error.<br />
+				<strong>quantity</strong> is the number of the specified product that was sold. It must be a positive integer. If it is zero, negative, or not an integer, an error state will occur.<br />
+				<strong>dateTime</strong> is the date and time the sale took place, in <a href="#sf-dt">compressed ISO 8601 format</a>. If the date/time is not in the correct format, an error state will occur.</p>
+			</section>
+			<section id="sf-d" class="indent">
+				<header>
+					<h3 class="sec-title">Derived Fields</h3>
+				</header>
+				<p>These fields cannot be specified in add or edit requests - they are generated automatically, with their values being derived from specifiable fields.</p>
+				<p>Note that this set of fields is a superset of the specifiable fields - that is, a set of derived fields can contain specifiable fields.</p>
+				<p><strong>id</strong> is the numeric ID of this sales record. It is the primary key for the sales record table.<br />
+				<strong>name</strong> is the name of the product this sales record pertains to. It is derived from the value of the product field.<br />
+				<strong>value</strong> is the cost (in cents) of one instance of the product this sales record pertains to. It is derived from the value of the product field. The total cost can be computed by multiplying this value with the quantity field.<br /></p>
+			</section>
+			<section id="sf-dt" class="indent">
+				<header>
+					<h3 class="sec-title">Understanding the Date/Time Format</h3>
+				</header>
+				<p>The date/time format is compressed, but hard to read.</p>
+				<p>A compressed date/time string will look like this: 20160708T084740Z. Let's break down what each component means.</p>
+				<p><strong class="u">2016</strong>0708T084740Z - The year.<br />
+				2016<strong class="u">07</strong>08T084740Z - The month of the year.<br />
+				201607<strong class="u">08</strong>T084740Z - The day of the month.<br />
+				20160708<strong class="u">T</strong>084740Z - Indicates that the date has stopped and the time has started. This is immutable.<br />
+				20160708T<strong class="u">08</strong>4740Z - The hour of the day.<br />
+				20160708T08<strong class="u">47</strong>40Z - The minute of the hour.<br />
+				20160708T0847<strong class="u">40</strong>Z - The second of the minute.<br />
+				20160708T084740<strong class="u">Z</strong> - Indicates that this is a UTC date/time (zulu time). This is immutable.</p>
+				<p>So, if you had a date along the lines of 2017-08-11 and a time of 3:48:07 pm, you would encode it like this:</p>
+				<p>If your date/time is not in UTC time, it should be adjusted so it is.<br />
+				Remove all the dashes from the date component, so it now looks like 20170811.<br />
+				Stick a T on the end to indicate a context switch from date to time, so it now looks like 20170811T.<br />
+				Times are all in 24-hour time, so if your time is pm, add 12 to the hour, so your time is now 15:48:07.<br />
+				Remove all the colons from the time component, so it now looks like 154807.<br />
+				Stick the date and time components together, so combined they now look like 20170811T154807.<br />
+				Stick a Z on the end to indicate the timezone is UTC, so it now looks like 20170811T154807Z.</p>
+				<p>Keep in mind that the API expects date/time values to be the same length every time - this means that June is written as 06 and not 6, and the same is true for every other part of the date/time string.</p>
+			</section>
+		</section>
 		<section id="r" class="indent">
 			<header>
 				<h2 class="sec-title">Request Syntax</h2>
@@ -187,26 +327,27 @@ xhr.send("request=" + encodeURIComponent(JSON.stringify(json))); // Request JSON
 				<header>
 					<h3 class="sec-title">Authentication</h3>
 				</header>
-				<p>The authent data needs to be included with every request. This is to ensure an attacker cannot simply bypass a one-time login check by hand-writing their own HTTP requests.</p>
+				<p>Authent data needs to be included with every request. This is to ensure an attacker cannot simply bypass a one-time login check by hand-writing their own HTTP requests.</p>
 				<p>Authent data consists of two parts: the username and the password.</p>
-				<p><strong>username</strong> is the unique ID for the current user. It can be up to 32 characters long.<br />
-				<strong>password</strong> is the key that unlocks access for the specified user. It can be up to 128 characters long.</p>
+				<p><strong>username</strong> is the unique ID for the current user. It can be up to (or exactly) 32 characters long.<br />
+				<strong>password</strong> is the key that unlocks access for the specified user. It can be up to (or exactly) 128 characters long.</p>
 				<p>Sample code:</p>
 <pre>
 var json = {
 	"authent": {
 		"username": "animerules123",
 		"password": "sailormoons"
-	},
-	// Requests...
+	}
 };
 </pre>
+				<p>If your request has a HTTP status code of 403, then authentication failed (<a href="#s-e-403">see error documentation</a>).</p>
+				<p>It is possible to send authent details to the API without any accompanying requests. In this case, no data will be returned besides the status code.</p>
 			</section>
 			<section id="r-r" class="indent">
 				<header>
 					<h3 class="sec-title">Requests</h3>
 				</header>
-				<p>Each time you call the API, you must specify a request to execute. You <em>can</em> not specify any, but then nothing will happen, so what's the point?</p>
+				<p>Each time you call the API, you can optionally specify a request to execute. Not specifying any request will cause <a href="#r-a">user authentication</a> to occur and any tables that don't exist to be created, but otherwise nothing will happen.</p>
 				<p>To save processing power, you may specify multiple requests from the one connection. Requests will be executed in the same order defined by the user (first to last).</p>
 				<p>Sample code:</p>
 <pre>
@@ -264,10 +405,7 @@ var json = {
 						<header>
 							<h3 class="sec-title">Record Data</h3>
 						</header>
-						<p>When adding a record, each of the following fields must be specified.</p>
-						<p><strong>product</strong> is the unique numeric ID of the product this sales record concerns. A list of all defined products can be found at <a href="../debug/get_products.php">dp2-api/debug/get_products.php</a>. Setting this field to any value not in the database will result in an error.<br />
-						<strong>quantity</strong> is the number of the specified product that was sold. It must be a positive integer. If it is zero, negative, or not an integer, an error state will occur.<br />
-						<strong>dateTime</strong> is the date and time the sale took place, in <a href="https://en.wikipedia.org/wiki/ISO_8601">compressed ISO 8601 format</a>. If the date/time is not in the correct format, an error state will occur.</p>
+						<p>When adding a record, every one of the <a href="#sf-s">specifiable fields</a> must be specified.</p>
 						<p>Sample code:</p>
 <pre>
 var json = {
@@ -286,30 +424,6 @@ var json = {
 	]
 };
 </pre>
-						<section id="r-r-a-r-dt" class="indent">
-							<header>
-								<h3 class="sec-title">Understanding the Date/Time Format</h3>
-							</header>
-							<p>The date/time format is compressed, but hard to read.</p>
-							<p>A compressed date/time string will look like this: 20160708T084740Z. Let's break down what each component means.</p>
-							<p><strong class="u">2016</strong>0708T084740Z - The year.<br />
-							2016<strong class="u">07</strong>08T084740Z - The month of the year.<br />
-							201607<strong class="u">08</strong>T084740Z - The day of the month.<br />
-							20160708<strong class="u">T</strong>084740Z - Indicates that the date has stopped and the time has started. This is immutable.<br />
-							20160708T<strong class="u">08</strong>4740Z - The hour of the day.<br />
-							20160708T08<strong class="u">47</strong>40Z - The minute of the hour.<br />
-							20160708T0847<strong class="u">40</strong>Z - The second of the minute.<br />
-							20160708T084740<strong class="u">Z</strong> - Indicates that this is a UTC date/time (zulu time). This is immutable.</p>
-							<p>So, if you had a date along the lines of 2017-08-11 and a time of 3:48:07 pm, you would encode it like this:</p>
-							<p>If your date/time is not in UTC time, it should be adjusted so it is.<br />
-							Remove all the dashes from the date component, so it now looks like 20170811.<br />
-							Stick a T on the end to indicate a context switch from date to time, so it now looks like 20170811T.<br />
-							Times are all in 24-hour time, so if your time is pm, add 12 to the hour, so your time is now 15:48:07.<br />
-							Remove all the colons from the time component, so it now looks like 154807.<br />
-							Stick the date and time components together, so combined they now look like 20170811T154807.<br />
-							Stick a Z on the end to indicate the timezone is UTC, so it now looks like 20170811T154807Z.</p>
-						</section>
-						<!-- TODO: Error states -->
 					</section>
 					<section id="r-r-a-s" class="indent">
 						<header>
@@ -327,8 +441,6 @@ var json = {
 							</header>
 							<p>If an add request was unsuccessful, one of the following error codes may be returned:</p>
 							<ul>
-								<li><a href="#s-e-400">ERR 5</a> indicates that the request data was not valid JSON.</li>
-								<li><a href="#s-e-400">ERR 7</a> indicates that the request data was valid JSON, but was either not formatted correctly, or fields contained invalid values.</li>
 								<li><strong class="u">ERR 7/9</strong> indicates that the product ID field of a record was not an integer.</li>
 								<li><strong class="u">ERR 7/10</strong> indicates that the quantify field of a record was not an integer.</li>
 								<li><strong class="u">ERR 7/11</strong> indicates that the value of the quantity field was not a positive number.</li>
@@ -338,10 +450,8 @@ var json = {
 								<li><strong class="u">ERR 7/15</strong> indicates that a record was not a JSON object.</li>
 								<li><strong class="u">ERR 7/16</strong> indicates that the records field of a request object was not an array.</li>
 								<li><strong class="u">ERR 7/17</strong> indicates that the required add request field "records" was not defined.</li>
-<!--
-								<li><strong class="u">ERR 7/n</strong> indicates that x.</li>
--->
 							</ul>
+							<p>In addition, one of the <a href="#s-e">global error states</a> may occur.</p>
 						</section>
 					</section>
 				</section>
@@ -363,7 +473,7 @@ var json = {
 </pre>
 					<section id="r-r-r-f" class="indent">
 						<header>
-							<h3 class="sec-title">Filters</h3>
+							<h3 class="sec-title">Retrieve Filters</h3>
 						</header>
 						<p>By default, a retrieve request will return every sales record in the database. To change this behavior, a filter must be provided.</p>
 						<p>Filters can be added to retrieve requests like so:</p>
@@ -381,138 +491,125 @@ var json = {
 };
 </pre>
 						<p>A sales record will only be returned if the filter returns true for that record.</p>
-						<p>Certain filters can be chained together to create a tree of filters.</p>
-						<p>There are two types of filters.</p>
-						<section id="r-r-r-f-c" class="indent">
+						<p>For details on filter syntax, please refer to the <a href="#f">filters section of this document</a>.</p>
+					</section>
+					<section id="r-r-r-s" class="indent">
+						<header>
+							<h3 class="sec-title">Responses</h3>
+						</header>
+						<section id="r-r-r-s-n" class="indent">
 							<header>
-								<h3 class="sec-title">Column Filters</h3>
+								<h3 class="sec-title">Normal Responses</h3>
 							</header>
-							<p>Column filters specify that a column needs to have either a certain value, of have that value be in a certain range. They are the most basic type of filter, and the only type of filter that can act as leaf nodes on the filter tree. To indicate that a filter is a column filter, you must set its "type" field to "column".</p>
+							<p>If a retrieve request was successful, one of three things will be returned:</p>
+							<ul>
+								<li>If no sales records are being returned, it will return an empty array.</li>
+								<li>If only one sales record is being returned, it will return that sales record.</li>
+								<li>If more than one sales record is being returned, it will return an array of those sales records.</li>
+							</ul>
+							<p>The fields in the returned JSON object(s) correspond to the <a href="#sf-d">derived fields</a>.</p>
+						</section>
+						<section id="r-r-r-s-e" class="indent">
+							<header>
+								<h3 class="sec-title">Error Responses</h3>
+							</header>
+							<p>There are no local error responses for this request, although one of the <a href="#s-e">global error responses</a> or <a href="#f-e">filter error responses</a> may still occur.</p>
+						</section>
+					</section>
+				</section>
+				<section id="r-r-e" class="indent">
+					<header>
+						<h3 class="sec-title">Edit Requests</h3>
+					</header>
+					<p>An edit request is a type of request specifying that the database should change some of its sales record's fields to the specified values, optionally only editing rows that match some filter.</p>
+					<p>To specify that a request is an edit request, you must set the "type" field to "edit".</p>
 <pre>
 var json = {
 	// Authent...
 	"requests": [
 		{
-			"type": "retrieve",
+			"type": "edit",
+			// etc.
+		}
+	]
+};
+</pre>
+					<section id="r-r-e-u" class="indent">
+						<header>
+							<h3 class="sec-title">Specifying Values to Edit</h3>
+						</header>
+						<p>To specify the new values of certain sales record fields, you must declare them in the updateTo field of the request.</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "edit",
+			"updateTo": {
+				"quantity": 12
+			}
+		}
+	]
+};
+</pre>
+						<p>Values of fields that are not specified in updateTo are not changed.</p>
+						<p>When specifying an edit, at least one of the <a href="#sf-s">specifiable fields</a> must be set.</p>
+<!-- todo -->
+					</section>
+					<section id="r-r-e-f" class="indent">
+						<header>
+							<h3 class="sec-title">Edit Filters</h3>
+						</header>
+						<p>By default, an edit request will edit every sales record in the database. To change this behavior, a filter must be provided.</p>
+						<p>Filters can be added to edit requests like so:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "edit",
+			"updateTo": {
+				// Edit data...
+			},
 			"filter": {
-				"type": "column",
 				// Filter details...
 			}
 		}
 	]
 };
 </pre>
-							<p>Each column filter corresponds to a specific column of the sales record table. This is indicated through the "name" field.</p>
-<pre>
-"filter": {
-	"type": "column",
-	"name": "product",
-	// etc...
-}
-</pre>
-							<p>Valid column names are as follows:</p>
-							<ul>
-								<li><strong class="u">id</strong> is the unique ID of the sales record. It is a positive integer.</li>
-								<li><strong class="u">product</strong> is the unique ID of the product that was sold. It is a positive integer. Its possible values are enumerated on <a href="../debug/get_products.php">this page</a>.</li>
-								<li><strong class="u">quantity</strong> is the amount of product that was sold. It is a positive integer.</li>
-								<li><strong class="u">dateTime</strong> is the date and time the sale took place. It is a <a href="#r-a-r-dt">compresses ISO 8601 Date/Time string</a>.</li>
-								<li><strong class="u">name</strong> is the name of the product corresponding to the unique product ID. It is a string.</li>
-								<li><strong class="u">value</strong> is the price, in cents, of the product corresponding to the unique product ID. It is a positive integer.</li>
-							</ul>
-							<p>Specific values for these columns can be filtered for using one of two methods.</p>
-							<section id="r-r-r-f-c-v" class="indent">
-								<header>
-									<h3 class="sec-title">value</h3>
-								</header>
-								<p>By using the "value" field, the filter will only return true for sales records that have the specified value.</p>
-								<p>Sample code:</p>
-<pre>
-"filter": {
-	"type": "column",
-	"name": "product",
-	"value": 2
-}
-</pre>
-							</section>
-							<section id="r-r-r-f-c-r" class="indent">
-								<header>
-									<h3 class="sec-title">inRange</h3>
-								</header>
-								<p>By using the "inRange" field, the filter will only return true for sales records that are inside the specified range.</p>
-								<p>The inRange field is an object with four fields.<br />
-								<strong class="u">low</strong> is the lower bound of the range that will return true.<br />
-								<strong class="u">lowInclusive</strong> is a boolean that determines whether values that are equal to low should return true.<br />
-								<strong class="u">high</strong> is the upper bound of the range that will return true.<br />
-								<strong class="u">highInclusive</strong> is a boolean that determines whether values that are equal to high should return true.</p>
-								<p>Sample code:</p>
-<pre>
-"filter": {
-	"type": "column",
-	"name": "dateTime",
-	"inRange": {
-		"low": "20100101T000000Z",
-		"lowInclusive": true,
-		"high": "2016000101T000000Z",
-		"highInclusive": false
-		// Any date in 2010-2015 inclusive will pass this test
-	}
-}
-</pre>
-							</section>
-						</section>
-						<section id="r-r-r-f-l" class="indent">
+						<p>A sales record will only be edited if the filter returns true for that record.</p>
+						<p>For details on filter syntax, please refer to the <a href="#f">filters section of this document</a>.</p>
+					</section>
+					<section id="r-r-e-s" class="indent">
+						<header>
+							<h3 class="sec-title">Responses</h3>
+						</header>
+						<section id="r-r-e-s-n" class="indent">
 							<header>
-								<h3 class="sec-title">Logic Filters</h3>
+								<h3 class="sec-title">Normal Responses</h3>
 							</header>
-							<p>Logic filters take in the values returned by their child filters and determine whether to return true based on how many of their children returned true.</p>
-							<section id="r-r-r-f-l-u" class="indent">
-								<header>
-									<h3 class="sec-title">Unary Logic Filters</h3>
-								</header>
-								<p>Unary logic filters have one and only one child filter.</p>
-								<p>There is only one unary filter: "logicNot". It will take whatever value is returned by its child and invert it - i.e. you can use this in combination with an inRange column filter to filter for fields that are outside a range.</p>
-								<p>Sample code:</p>
-<pre>
-"filter": {
-	"type": "logicNot",
-	"child": {
-		// Some other filter
-	}
-}
-</pre>
-							</section>
-							<section id="r-r-r-f-l-n" class="indent">
-								<header>
-									<h3 class="sec-title">Nary Logic Filters</h3>
-								</header>
-								<p>Nary logic filters have an arbitrary number of child filters.</p>
-<!--
-								<section id="r-r-r-f-l-n-x" class="indent">
-									<header>
-										<h3 class="sec-title">x</h3>
-									</header>
-									<p></p>
-									<p>Sample code:</p>
-<pre>
-"filter": {
-	"type": "x",
-	"children": [
-		{
-			// Some other filter
-		},
-		{
-			// Yet another filter...
-		}
-	]
-}
-</pre>
-								</section>
--->
-							</section>
+							<p>If an edit request wass successful, the number of records that were edited will be returned.</p>
+						</section>
+						<section id="r-r-e-s-e" class="indent">
+							<header>
+								<h3 class="sec-title">Error Responses</h3>
+							</header>
+							<p>If an edit request was unsuccessful, one of the following error codes may be returned:</p>
+							<ul>
+								<li><strong class="u">ERR 7/18</strong> indicates that the updateTo field of the edit request was undefined.</li>
+								<li><strong class="u">ERR 7/20</strong> indicates that the updateTo field of the edit request was not a JSON object.</li>
+								<li><strong class="u">ERR 7/21</strong> indicates that the updateTo field has no fields inside it.</li>
+								<li><strong class="u">ERR 7/22</strong> indicates that the product field of updateTo was not an integer.</li>
+								<li><strong class="u">ERR 7/23</strong> indicates that the quantity field of updateTo was not an integer.</li>
+								<li><strong class="u">ERR 7/24</strong> indicates that the quantity field of updateTo was not positive.</li>
+								<li><strong class="u">ERR 7/25</strong> indicates that the dateTime field of updateTo was not a string.</li>
+								<li><strong class="u">ERR 7/26</strong> indicates that the dateTime field of updateTo was not a valid DateTime string.</li>
+							</ul>
+							<p>In addition, one of the <a href="#s-e">global error states</a> or <a href="#f-e">filter error responses</a> may occur.</p>
 						</section>
 					</section>
 				</section>
-				<!-- TODO: retrieve requests -->
 			</section>
 		</section>
 		<section id="s" class="indent">
@@ -538,15 +635,16 @@ var json = {
 				</header>
 				<p>Each individual response can be one of three types.</p>
 				<p>If the response is <strong class="u">null</strong>, the request was successful and returned no data.<br />
-				If the response is <strong class="u">an object</strong>, the request was successful and returned data. Consult the documentaion for the relevant request type for the contents of this object.<br />
+				If the response is <strong class="u">an integer</strong>, the request was successful and returned the number of sales records that the request changed.<br />
+				If the response is <strong class="u">an object</strong>, the request was successful and returned sales record data. Consult the documentaion for the relevant request type for the contents of this object.<br />
 				If the response is <strong class="u">a string</strong>, then an error occured. The string contains details about the error. Consult the documentation for the relevant request type for reasons why certain errors may be encountered.</p>
 			</section>
 			<section id="s-e" class="indent">
 				<header>
 					<h3 class="sec-title">Errors</h3>
 				</header>
-				<p>Errors can occur before or during request execution. If the occur before, no JSON will be returned - just a string describing the error. If the occur during, the request's response data will be replaced with a string detailing the error, and subsequent requests will not be executed.</p>
-				<p>Below is a list of all the possible error states, and what they mean.</p>
+				<p>Errors can occur before or during request execution. If they occur before, no JSON will be returned - just a string describing the error. If the occur during, the request's response data will be replaced with a string detailing the error, and subsequent requests will not be executed.</p>
+				<p>Below is a list of error states that may occur when executing any request, and what they mean. For details about errors that are specific to certain request types, consult the documentation for that request type.</p>
 				<section id="s-e-400" class="indent">
 					<header>
 						<h3 class="sec-title">400 Bad Request</h3>
@@ -594,6 +692,226 @@ var json = {
 						<li><strong class="u">ERR 12</strong> indicates that an unhandled exception occured while executing a request.</li>
 					<ul>
 				</section>
+			</section>
+		</section>
+		<section id="f" class="indent">
+			<header>
+				<h3 class="sec-title">Filters</h3>
+			</header>
+			<p>A filter is a way of specifying that a certain request should only apply to a certain subset of all sales records.</p>
+			<p>Certain filters can be chained together to create a tree of filters.</p>
+			<p>There are two types of filters.</p>
+			<section id="f-c" class="indent">
+				<header>
+					<h3 class="sec-title">Column Filters</h3>
+				</header>
+				<p>Column filters specify that a column needs to have either a certain value, of have that value be in a certain range. They are the most basic type of filter, and the only type of filter that can act as leaf nodes on the filter tree. To indicate that a filter is a column filter, you must set its "type" field to "column".</p>
+<pre>
+"filter": {
+	"type": "column",
+	// Filter details...
+}
+</pre>
+				<p>Each column filter corresponds to a specific column of the sales record table. This is indicated through the "name" field.</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "product",
+	// etc...
+}
+</pre>
+				<p>Valid column names are any one of the <a href="#sf-d">derived fields</a>.</p>
+				<p>Specific values for these columns can be filtered for using one of two methods.</p>
+				<section id="f-c-v" class="indent">
+					<header>
+						<h3 class="sec-title">value</h3>
+					</header>
+					<p>By using the "value" field, the filter will only return true for sales records that have the specified value.</p>
+					<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "product",
+	"value": 2
+}
+</pre>
+				</section>
+				<section id="f-c-r" class="indent">
+					<header>
+						<h3 class="sec-title">inRange</h3>
+					</header>
+					<p>By using the "inRange" field, the filter will only return true for sales records that are inside the specified range.</p>
+					<p>The inRange field is an object with four fields.</p>
+					<p><strong class="u">low</strong> is the lower bound of the range that will return true.<br />
+					<strong class="u">lowInclusive</strong> is a boolean that determines whether values that are equal to low should return true.<br />
+					<strong class="u">high</strong> is the upper bound of the range that will return true.<br />
+					<strong class="u">highInclusive</strong> is a boolean that determines whether values that are equal to high should return true.</p>
+					<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "column",
+	"name": "dateTime",
+	"inRange": {
+		"low": "20100101T000000Z",
+		"lowInclusive": true,
+		"high": "2016000101T000000Z",
+		"highInclusive": false
+		// Any date in 2010-2015 inclusive will pass this test
+	}
+}
+</pre>
+					<p>The field <strong>name</strong> cannot be filtered for using this method.</p>
+				</section>
+			</section>
+			<section id="f-l" class="indent">
+				<header>
+					<h3 class="sec-title">Logic Filters</h3>
+				</header>
+				<p>Logic filters take in the values returned by their child filters and determine whether to return true based on how many of their children returned true.</p>
+				<section id="f-l-u" class="indent">
+					<header>
+						<h3 class="sec-title">Unary Logic Filters</h3>
+					</header>
+					<p>Unary logic filters have one and only one child filter.</p>
+					<p>There is only one unary filter: "logicNot". It will take whatever value is returned by its child and invert it - i.e. you can use this in combination with an inRange column filter to filter for fields that are outside a range.</p>
+					<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "logicNot",
+	"child": {
+		// Some other filter
+	}
+}
+</pre>
+				</section>
+				<section id="f-l-n" class="indent">
+					<header>
+						<h3 class="sec-title">Nary Logic Filters</h3>
+					</header>
+					<p>Nary logic filters have an arbitrary number of child filters.</p>
+					<p>In general, they look like this:</p>
+<pre>
+"filter": {
+	"type": "[FILTER TYPE]",
+	"children": [
+		{
+			// Some other filter
+		},
+		{
+			// Yet another filter...
+		}
+	]
+}
+</pre>
+					<section id="f-l-n-a" class="indent">
+						<header>
+							<h3 class="sec-title">logicAnd</h3>
+						</header>
+						<p>A logicAnd filter will return true if all of its children return true.</p>
+					</section>
+					<section id="f-l-n-o" class="indent">
+						<header>
+							<h3 class="sec-title">logicOr</h3>
+						</header>
+						<p>A logicOr filter will return true if any one of its children returned true.</p>
+					</section>
+					<section id="f-l-n-na" class="indent">
+						<header>
+							<h3 class="sec-title">logicNand</h3>
+						</header>
+						<p>A logicNand filter will return true if not all of its children return true.</p>
+					</section>
+					<section id="f-l-n-no" class="indent">
+						<header>
+							<h3 class="sec-title">logicNor</h3>
+						</header>
+						<p>A logicNor filter will return true if none of its children returned true.</p>
+					</section>
+					<section id="f-l-n-x" class="indent">
+						<header>
+							<h3 class="sec-title">logicXor</h3>
+						</header>
+						<p>A logicXor filter will return true if an odd number of its children returned true.</p>
+					</section>
+					<section id="f-l-n-xn" class="indent">
+						<header>
+							<h3 class="sec-title">logicXnor</h3>
+						</header>
+						<p>A logicXnor filter will return true if an even number of its children returned true (including 0).</p>
+					</section>
+					<section id="f-l-n-p" class="indent">
+						<header>
+							<h3 class="sec-title">Pivot Filters</h3>
+						</header>
+						<p>Pivot filters require that you specify a pivot value in addition to the child filters. Pivots must be integers.</p>
+						<p>Sample code:</p>
+<pre>
+"filter": {
+	"type": "[FILTER TYPE]",
+	"children": {
+		{
+			// Some filter...
+		},
+		{
+			// Another filter...
+		}
+	},
+	"pivot": 3
+}
+</pre>
+						<section id="f-l-n-p-lt" class="indent">
+							<header>
+								<h3 class="sec-title">logicLt</h3>
+							</header>
+							<p>A logicLt filter will return true if the number of children that returned true was less than the pivot value.</p>
+						</section>
+						<section id="f-l-n-p-gt" class="indent">
+							<header>
+								<h3 class="sec-title">logicGt</h3>
+							</header>
+							<p>A logicGt filter wil return true if the number of children that returned true was greater than the pivot value.</p>
+						</section>
+						<section id="f-l-n-p-le" class="indent">
+							<header>
+								<h3 class="sec-title">logicLe</h3>
+							</header>
+							<p>A logicLe filter wil return true if the number of children that returned true was less than or equal to the pivot value.</p>
+						</section>
+						<section id="f-l-n-p-ge" class="indent">
+							<header>
+								<h3 class="sec-title">logicGe</h3>
+							</header>
+							<p>A logicGe filter wil return true if the number of children that returned true was greater than or equal to the pivot value.</p>
+						</section>
+					</section>
+				</section>
+			</section>
+			<section id="f-e" class="indent">
+				<header>
+					<h3>Creation Errors</h3>
+				</header>
+				<p>If an error occured during filter parsing and creation, one of these errors may be returned.</p>
+				<ul>
+					<li><strong class="u">ERR 7/19</strong> indicates that a filter definition was not an object.</li>
+					<li><strong class="u">ERR 7/27</strong> indicates that the filter field "type" refers to a type of filter that does not exist.</li>
+					<li><strong class="u">ERR 7/28</strong> indicates that the filter field "type" is not a string.</li>
+					<li><strong class="u">ERR 7/29</strong> indicates that the filter field "type" is not defined.</li>
+					<li><strong class="u">ERR 7/31</strong> indicates that the nary pivot filter field "pivot" was not defined.</li>
+					<li><strong class="u">ERR 7/32</strong> indicates that the nary pivot filter field "pivot" was not an integer.</li>
+					<li><strong class="u">ERR 7/33</strong> indicates that that an inRange column filter is invalid for the specified column because the values stored in said column do not have defined inequality operators.</li>
+					<li><strong class="u">ERR 7/35</strong> indicates that a required field in the "inRange" field of a column filter is undefined.</li>
+					<li><strong class="u">ERR 7/36</strong> indicates that the column that a column filter is looking for does not exist.</li>
+					<li><strong class="u">ERR 7/37</strong> indicates that the column filter field "name" is not a string.</li>
+					<li><strong class="u">ERR 7/38</strong> indicates that the column filter field "name" is not defined.</li>
+					<li><strong class="u">ERR 7/39</strong> indicates that a column filter is not a JSON object.</li>
+					<li><strong class="u">ERR 7/40</strong> indicates that string values cannot be compared because no comparison function for strings exists.</li>
+					<li><strong class="u">ERR 7/41</strong> indicates that columns that have an undefined type cannot be compared.</li>
+					<li><strong class="u">ERR 7/42</strong> indicates that columns that have an undefined type cannot be equated to each other.</li>
+					<li><strong class="u">ERR 7/43</strong> indicates that a column filter doesn't have one of the required fields "value" or "inRange".</li>
+					<li><strong class="u">ERR 7/44</strong> indicates that the unary logic filter field "child" was not defined.</li>
+					<li><strong class="u">ERR 7/45</strong> indicates that the nary logic filter field "children" was not defined.</li>
+					<li><strong class="u">ERR 7/46</strong> indicates that the nary logic filter field "children" was not an array.</li>
+				</ul>
 			</section>
 		</section>
 	</article>
