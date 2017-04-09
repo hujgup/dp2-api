@@ -37,7 +37,7 @@
 		}
 		public function pushValues($values) {
 			$this->validateSet($values);
-			$this->_values[] = $this->formatValues($values);
+			$this->_values[] = $values;
 			return $this;
 		}
 		public function getDb() {
@@ -52,8 +52,12 @@
 			$count = count($this->_values);
 			if ($count <= 0) {
 				throw new UnexpectedValueException("Cannot insert zero values.");
-			} elseif ($count !== $this->_colNumber) {
-				throw new UnexpectedValueException("Number of values to be insert must be the same as the number of columns defined (expected ".$this->_colNumber." but was ".$count.").");
+			}
+			for ($i = 0; $i < $count; $i++) {
+				if (count($this->_values[$i]) !== $this->_colNumber) {
+					throw new UnexpectedValueException("Number of values to be insert must be the same as the number of columns defined (value set ".$i.", expected ".$this->_colNumber." but was ".$count.").");
+				}
+				$this->_values[$i] = $this->formatValues($this->_values[$i]);
 			}
 			$res = "INSERT INTO ".$this->_table." ".$this->_columns." VALUES ".$this->_values[0];
 			for ($i = 1; $i < $count; $i++) {
