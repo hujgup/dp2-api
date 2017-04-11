@@ -76,7 +76,7 @@
 							try {
 								$response = $req[$i]->invoke($db);
 							} catch (DatabaseQueryException $e) {
-								set_header("HTTP/1.0 500 Internal Server Error");
+								set_header("HTTP/1.0 400 Bad Request");
 								echo "\"";
 								print_exc($e,"11",true);
 								echo "\"";
