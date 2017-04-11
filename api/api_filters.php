@@ -198,7 +198,7 @@
 		public function __construct(&$json,&$stack) {
 			if (array_key_exists("child",$json)) {
 				$stack[] = "child";
-				$this->_child = ApiRetrieveRequest::createFilter($json["child"],$stack);
+				$this->_child = FilterMap::createFilter($json["child"],$stack);
 				array_pop($stack);
 			} else {
 				ApiRequest::createUndefError("child",$stack,44);
@@ -218,7 +218,7 @@
 				if (is_array($children)) {
 					$stack[] = "children";
 					foreach ($children as $child) {
-						$this->_children[] = ApiRetrieveRequest::createFilter($child,$stack);
+						$this->_children[] = FilterMap::createFilter($child,$stack);
 					}
 					array_pop($stack);
 				} else {

@@ -22,7 +22,6 @@ var json = {
 		}
 	]
 };
-/*
 var json = {
 	"authent": {
 		"username": "feferi",
@@ -30,11 +29,25 @@ var json = {
 	},
 	"requests": [
 		{
-			"type": "retrieve"
+			"type": "retrieve",
+			"filter": {
+				"type": "logicOr",
+				"children": [
+					{
+						"type": "column",
+						"name": "product",
+						"value": 2
+					},
+					{
+						"type": "column",
+						"name": "product",
+						"value": 4
+					}
+				]
+			}
 		}
 	]
 };
-*/
 /*
 var json = {
 	"authent": {
