@@ -242,7 +242,7 @@
 
 	class LogicAndFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount === $totalCount;
@@ -252,7 +252,7 @@
 
 	class LogicOrFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount > 0;
@@ -262,7 +262,7 @@
 
 	class LogicNandFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount !== $totalCount;
@@ -272,7 +272,7 @@
 
 	class LogicNorFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount === 0;
@@ -282,7 +282,7 @@
 
 	class LogicXorFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount%2 !== 0;
@@ -292,7 +292,7 @@
 
 	class LogicXnorFilter extends NaryLogicFilter {
 		public function __construct(&$json,&$stack) {
-			super::__construct($json,$stack);
+			parent::__construct($json,$stack);
 		}
 		protected function evaluate($trueCount,$totalCount) {
 			return $trueCount%2 === 0;
