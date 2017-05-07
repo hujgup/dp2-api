@@ -26,6 +26,16 @@
 		}
 	}
 
+	function std_compare($a,$b) {
+		$res = 0;
+		if ($a < $b) {
+			$res = -1;
+		} elseif ($a > $b) {
+			$res = 1;
+		}
+		return $res;
+	}
+
 	class Bound {
 		private $_value = null;
 		private $_inclusive = null;
@@ -34,27 +44,32 @@
 			$this->_value = $value;
 			$this->_inclusive = $inclusive;
 			if ($comparer === null) {
-				$comparer = self::stdCompare;
+				$comparer = "std_compare";
 			} elseif (!is_callable($comparer)) {
 				throw new InvalidArgumentException("Comparer must be callable.");
 			}
 			$this->_comparer = $comparer;
 		}
-		public static function stdCompare($a,$b) {
-			$res = 0;
-			if ($a < $b) {
-				$res = -1;
-			} elseif ($a > $b) {
-				$res = 1;
-			}
-			return $res;
+		private function compare(&$a,&$b) {
+			return call_user_func($this->_comparer,$a,$b);
+		}
+		public function getValue() {
+			return $this->_value;
+		}
+		public function isInclusive() {
+			return $this->_inclusive;
+		}
+		public function getComparer() {
+			return $this->_comparer;
 		}
 		public function argIsAbove($arg) {
-			$cmp = $this->_compare($arg,$this->_value);
+			$cmp = $this->compare($arg,$this->_value);
+//			var_dump("above(".$arg.", ".$this->_value.") -> ".$cmp);
 			return $this->_inclusive ? $cmp >= 0 : $cmp > 0;
 		}
 		public function argIsBelow($arg) {
-			$cmp = $this->_compare($arg,$this->_value);
+			$cmp = $this->compare($arg,$this->_value);
+//			var_dump("below(".$arg.", ".$this->_value.") -> ".$cmp);
 			return $this->_inclusive ? $cmp <= 0 : $cmp < 0;
 		}
 	}
@@ -72,15 +87,25 @@
 		public function argNotInRange($arg) {
 			return !$this->argInRange($arg);
 		}
+		public function __toString() {
+			$res = $this->_lower->isInclusive() ? "[" : "(";
+			$res .= $this->_lower->getValue();
+			$res .= ", ";
+			$res .= $this->_upper->getValue();
+			$res .= $this->_upper->isInclusive() ? "]" : ")";
+			return $res;
+		}
 	}
 
 	class ColumnRangeFilter implements Filter {
+		private $_name = null;
 		private $_range = null;
 		public function __construct(&$name,&$json,&$stack) {
+			$this->_name = $name;
 			$type = Database::getColumnType($name);
 			if ($type !== null) {
 				if ($type !== "string") {
-					$this->setupRange($json,$stack);
+					$this->setupRange($type,$json,$stack);
 				} else {
 					ApiRequest::createError("Column \"".$name."\" has type ".$type.", which is not comparable.",$stack,33);
 				}
@@ -93,7 +118,7 @@
 				ApiRequest::createUndefError($key,$stack,35);
 			}
 		}
-		private function setupRange(&$json,&$stack) {
+		private function setupRange(&$type,&$json,&$stack) {
 			$this->verifyKeyExists("low",$json,$stack);
 			$this->verifyKeyExists("lowInclusive",$json,$stack);
 			$this->verifyKeyExists("high",$json,$stack);
@@ -102,7 +127,8 @@
 			$high = Database::formatValue($this->_name,$json["high"]);
 			$lowInclusive = boolval($json["lowInclusive"]);
 			$highInclusive = boolval($json["highInclusive"]);
-			$this->_range = new Range(new Bound($low,$lowInclusive),new Bound($high,$highInclusive));
+			$cmp = $type === "datetime" ? [UtcDateTime::class,"compare"] : null;
+			$this->_range = new Range(new Bound($low,$lowInclusive,$cmp),new Bound($high,$highInclusive,$cmp));
 		}
 		public function passes(&$row) {
 			return $this->_range->argInRange($row[$this->_name]);

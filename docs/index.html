@@ -179,6 +179,17 @@ window.addEventListener("DOMContentLoaded",function() {
 										</li>
 									</ol>
 								</li>
+								<li><a href="#r-r-t">Trendline Requests</a>
+									<ol class="l3">
+										<li><a href="#r-r-t-f">Trendline Filters</a></li>
+										<li><a href="#r-r-t-s">Responses</a>
+											<ol class="l4">
+												<li><a href="#r-r-t-s-n">Normal Responses</a></li>
+												<li><a href="#r-r-t-s-e">Error Responses</a></li>
+											</ol>
+										</li>
+									</ol>
+								</li>
 							</ol>
 						</li>
 					</ol>
@@ -605,6 +616,97 @@ var json = {
 								<li><strong class="u">ERR 7/24</strong> indicates that the quantity field of updateTo was not positive.</li>
 								<li><strong class="u">ERR 7/25</strong> indicates that the dateTime field of updateTo was not a string.</li>
 								<li><strong class="u">ERR 7/26</strong> indicates that the dateTime field of updateTo was not a valid DateTime string.</li>
+							</ul>
+							<p>In addition, one of the <a href="#s-e">global error states</a> or <a href="#f-e">filter error responses</a> may occur.</p>
+						</section>
+					</section>
+				</section>
+				<section id="r-r-t" class="indent">
+					<header>
+						<h3 class="sec-title">Trendline Requests</h3>
+					</header>
+					<p>A trendline request is a type of request specifying that a trendline matching a set of points should be calculated and returned.</p>
+					<p>To specify that a request is a trendline reqiest, you must set the "type" field to "trendline".</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "trendline",
+			// etc.
+		}
+	]
+};
+</pre>
+					<p>You must also specify some data about how you want the trendline to be constructed.</p>
+					<p><strong>fit</strong> is the type of regression to use when creating the trendline, and will influence what is returned by this request. See <a href="#r-r-t-s-n">the normal responses</a> of this field and how they influence the returned data.<br />
+					<strong>y</strong> is the data that should be on the y axis of the trendline. It may be one of two values. <em>unitsSold</em> is the absolute amount of procuct moved. <em>revenue</em> is the amount of money earnt from each sale (units sold * value of one unit).<br />
+					<strong>cumulative</strong> is a boolean value representing whether data points should be isolated or cumulative. For example, if there exists two sales records two seconds apart where the revenue for record A is 5 and for record B is 2, if cumulative is true the value of B will be 7 instead of 2 (5 + 2 = 7).<br />
+					<strong>granularity</strong> is an <em>optional</em> field specifying the size of time groupings, in seconds. If omitted then no time grouping will occur, but if it is set to, say, 5, then every sale within 5 seconds will become one data point.<br /></p>
+					<p>An example of these values in use follows:</p>
+<pre>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "trendline",
+			"fit": "linear", // Will attempt to fit data to a straight line
+			"y": "revenue", // The Y axis plots revenue
+			"cumulative": true, // Plots total revenue over time, as opposed to revnue per sale
+			"granularity": 86400 // Every sale that occured within 1 day should be collapsed into one data point
+		}
+	]
+};
+</pre>
+					<section id="r-r-t-f" class="indent">
+						<header>
+							<h3 class="sec-title">Trendline Filters</h3>
+						</header>
+						<p>By default, a trendline request will consider every sales record in the database. To change this behavior, a filter must be provided.</p>
+<pre>						<p>Filters can be added to trendline requests like so:</p>
+var json = {
+	// Authent...
+	"requests": [
+		{
+			"type": "trendline",
+			// Other fields...
+			"filter": {
+				// Filter details...
+			}
+		}
+	]
+};
+</pre>
+						<p>A sales record will only be considered during trendline calculation if the filter returns true for that record.</p>
+						<p>For details on filter syntax, please refer to the <a href="#f">filters section of this document</a>.</p>
+					</section>
+					<section id="r-r-t-s" class="indent">
+						<header>
+							<h3 class="sec-title">Responses</h3>
+						</header>
+						<section id="r-r-t-s-n" class="indent">
+							<header>
+								<h3 class="sec-title">Normal Responses</h3>
+							</header>
+							<p>If a trendline request was successful, the return value will be a JSON object. The fields of this object will vary depending on the specified fit type.</p>
+							<ul>
+								<li>If the fit type is <strong>linear</strong>, the <em>m</em> field represents the gradient of the line, and the <em>c</em> field represents the vertical offset of the line at x = 0 (y = mx + c).</li>
+							</ul>
+						</section>
+						<section id="r-r-t-s-e" class="indent">
+							<header>
+								<h3 class="sec-title">Error Responses</h3>
+							</header>
+							<p>If a trendline request was unsucessful, one of the following error codes may be returned:</p>
+							<ul>
+								<li><strong class="u">ERR 7/46</strong> indicates that the fit field of the trendline request was undefined.</li>
+								<li><strong class="u">ERR 7/47</strong> indicates that the fit field of the trendline request was not one of the valid enumerated values as specified in the <a href="#r-r-t-s-n">normal responses</a> section.</li>
+								<li><strong class="u">ERR 7/48</strong> indicates that the y field of the trendline request was undefined.</li>
+								<li><strong class="u">ERR 7/49</strong> indicates that the y field of the trendline request was not one of the valid enumerated values as specified in the <a href="#r-r-t">field description</a> section.</li>
+								<li><strong class="u">ERR 7/50</strong> indicates that the granularity field of the trendline request was not an integer.</li>
+								<li><strong class="u">ERR 7/51</strong> indicates that the granularity field of the trendline request was not in the range [1, Infinity).</li>
+								<li><strong class="u">ERR 7/52</strong> indicates that the cumulative field of the trendline request was undefined.</li>
+								<li><strong class="u">ERR 7/53</strong> indicates that the cumulative field of the trendline request was not a boolean.</li>
 							</ul>
 							<p>In addition, one of the <a href="#s-e">global error states</a> or <a href="#f-e">filter error responses</a> may occur.</p>
 						</section>

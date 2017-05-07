@@ -17,6 +17,7 @@
 
 	class UtcDateTime implements JsonSerializable {
 		const STR_REGEX = "/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})Z$/";
+		private $_dt = null;
 		public $iso8601 = null;
 		public $year = null;
 		public $month = null;
@@ -24,7 +25,7 @@
 		public $hour = null;
 		public $minute = null;
 		public $second = null;
-		public $unix = null;
+		//public $unix = null;
 		public function __construct($str) {
 			if (is_string($str)) {
 				$this->iso8601 = $str;
@@ -47,9 +48,13 @@
 		}
 		public static function compare(UtcDateTime $a,UtcDateTime $b) {
 			$res = 0;
-			if ($a->unix < $b->unix) {
+			$diff = $a->_dt->diff($b->_dt);
+			//var_dump($diff);
+			if ($diff->invert === 0) {
+				// Is negative, so a is smaller
 				$res = -1;
-			} elseif ($a->unix > $b->unix) {
+			} else if ($diff->days !== 0) {
+				// Not zero and not negative, so positive, so b is smaller
 				$res = 1;
 			}
 			return $res;
@@ -85,7 +90,13 @@
 			}
 		}
 		private function buildUnixTime() {
-			$this->unix = gmmktime($this->hour,$this->minute,$this->second,$this->month,$this->day,$this->year);
+			$this->_dt = new DateTime();
+			$this->_dt->setTimezone(new DateTimeZone("UTC"));
+			$this->_dt->setDate($this->year,$this->month,$this->day);
+			$this->_dt->setTime($this->hour,$this->minute,$this->second);
+		}
+		public function getUnix() {
+			return $this->_dt->format("U");
 		}
 		public function jsonSerialize() {
 			return $this->iso8601;

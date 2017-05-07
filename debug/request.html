@@ -1,4 +1,5 @@
 <script>
+/*
 var json = {
 	"authent": {
 		"username": "feferi",
@@ -48,7 +49,6 @@ var json = {
 		}
 	]
 };
-/*
 var json = {
 	"authent": {
 		"username": "feferi",
@@ -69,6 +69,30 @@ var json = {
 	]
 };
 */
+var json = {
+	"authent": {
+		"username": "feferi",
+		"password": "0413"
+	},
+	"requests": [
+		{
+			"type": "trendline",
+			"fit": "linear",
+			"y": "revenue",
+			"cumulative": false,
+			"filter": {
+				"type": "column",
+				"name": "dateTime",
+				"inRange": {
+					"low": "20500101T000000Z",
+					"lowInclusive": true,
+					"high": "30000101T000000Z",
+					"highInclusive": false
+				}
+			}
+		}
+	]
+};
 
 var req = new XMLHttpRequest();
 req.open("POST","../api/",true);

@@ -4,6 +4,7 @@
 	require_once("api_add_request.php");
 	require_once("api_edit_request.php");
 	require_once("api_retrieve_request.php");
+	require_once("api_trendline_request.php");
 
 	$canSet = true;
 	function set_header($str) {

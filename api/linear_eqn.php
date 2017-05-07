@@ -1,5 +1,5 @@
 <?php
-	class LinearEquation {
+	class LinearEquation implements JsonSerializable {
 		private $_m = null;
 		private $_c = null;
 		public function __construct($m,$c) {
@@ -53,6 +53,13 @@
 				throw new InvalidArgumentException("Linear regression requires at least two unique points and is undefined for a vertical line.");
 			}
 			return new LinearEquation($m,$c);
+		}
+		public static function fitAssoc(&$assocPoints) {
+			$points = [];
+			foreach ($assocPoints as $x => $y) {
+				$points[] = [$x,$y];
+			}
+			return self::fit($points);
 		}
 		public function getM() {
 			return $this->_m;
