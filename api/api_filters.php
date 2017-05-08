@@ -165,7 +165,7 @@
 			switch ($type) {
 				case "int":
 					$res = function($a,$b) {
-						return Bound::stdCompare($a,$b); // Can't assign static functions to variables because PHP thinks it's a class constant and can't find it
+						return std_compare($a,$b); // Can't assign static functions to variables because PHP thinks it's a class constant and can't find it
 					};
 					break;
 				case "datetime":
